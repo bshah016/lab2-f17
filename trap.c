@@ -77,6 +77,14 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+    
+    if (rcr2() > KERNBASE - 1) {
+      cprintf("accessing address that is greater than KERNBASE");
+      exit();
+    }
+    
+    break;
 
   //PAGEBREAK: 13
   default:

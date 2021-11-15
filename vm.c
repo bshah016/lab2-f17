@@ -315,6 +315,7 @@ clearpteu(pde_t *pgdir, char *uva)
 pde_t*
 copyuvm(pde_t *pgdir, uint sz)
 {
+  struct proc *curproc = myproc(); //for lab 3
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
@@ -332,11 +333,29 @@ copyuvm(pde_t *pgdir, uint sz)
     if((mem = kalloc()) == 0)
       goto bad;
     memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0) {
+      kfree(mem);
+      goto bad;
+    }
+  }
+  //return d;
+
+  //same loop as above, just diff for loop conditions
+  for(i = PGROUNDDOWN(KERNBASE - 1); i > PGROUNDDOWN(KERNBASE - 1) - (curproc->pages) * PGSIZE; i -= PGSIZE){
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
+  
   return d;
-
 bad:
   freevm(d);
   return 0;

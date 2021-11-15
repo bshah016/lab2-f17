@@ -199,6 +199,7 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->pages = curproc->pages; //added for lab3 to keep track of the stack size
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
