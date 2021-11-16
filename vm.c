@@ -341,7 +341,11 @@ copyuvm(pde_t *pgdir, uint sz)
   //return d;
 
   //same loop as above, just diff for loop conditions
-  for(i = PGROUNDDOWN(KERNBASE - 1); i > PGROUNDDOWN(KERNBASE - 1) - (curproc->pages) * PGSIZE; i -= PGSIZE){
+  for(i = PGROUNDDOWN(KERNBASE - 1); i > PGROUNDDOWN(KERNBASE - 1) - (curproc->pages) * PGSIZE; i -= PGSIZE)
+  {
+    // first cond is the top page of user memory
+    // second cond is the end (bottom - top) * PGSIZE = size of the stack;
+    // decrement by PGSIZE 
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
