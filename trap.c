@@ -80,9 +80,9 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
     
-    if (rcr2() > KERNBASE - 1) 
+    if (rcr2() > KERNBASE - 1) //rcr2() gets address of page fault for CR2 hardware register
     {
-      cprintf("accessing address that is greater than KERNBASE");
+      cprintf("failed because : accessing address that is greater than KERNBASE");
       exit();
     }
 
