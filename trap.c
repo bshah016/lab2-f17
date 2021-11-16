@@ -36,6 +36,7 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+  struct proc *curproc = myproc(); //added so i can access the pages
   if(tf->trapno == T_SYSCALL){
     if(myproc()->killed)
       exit();
@@ -79,11 +80,22 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
     
-    if (rcr2() > KERNBASE - 1) {
+    if (rcr2() > KERNBASE - 1) 
+    {
       cprintf("accessing address that is greater than KERNBASE");
       exit();
     }
-    
+
+    uint page = PGROUNDDOWN(rcr2());
+
+    if (allocuvm(curproc->pgdir, page, page + PGSIZE) == 0) 
+    {
+      cprintf("allocuvm from switch case has failed (trap.c line 92)");
+      exit();
+    }
+    int nums = curproc->pages + 1;
+    curproc->pages = nums;
+    cprintf("allocuvm passed (trap.c line 92). Pages allocated are: %d\n", curproc->pages);
     break;
 
   //PAGEBREAK: 13
